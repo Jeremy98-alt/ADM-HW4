@@ -31,7 +31,7 @@ from PIL import Image
 
 # Our hash function
 def hash_function(string_):
-    n = 2^32 + 15
+    n = 2**32 + 15
     
     result = 0
     for char in string_:
