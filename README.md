@@ -13,7 +13,7 @@ _for "Algorithmic Methods of Data Mining", "La Sapienza" University of Rome, MSc
 <br>
 
 
-In the following lines you can find the **content of the repository**:
+Here's the **content of the repository**:
 
-* [_main.ipynb_](../main/main.ipynb): main file with all the exercises
-* [_functions.py_](../main/functions.py): Using this code we downloaded the HTMLs of all the books
+* [_main.ipynb_](../main/main.ipynb): Main file with all the exercises
+* [_functions.py_](../main/functions.py): contains the functions called in main
