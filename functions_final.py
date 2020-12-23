@@ -6,16 +6,35 @@ import scipy.special as special
 import numpy as np
 import pandas as pd
 import math
+import re
 
 import matplotlib.pyplot as plt
 import seaborn as sns
 
 # for the subquestion number 3.1
-from wordcloud import WordCloud 
+#from wordcloud import WordCloud 
 import functools
 import operator
+import pandas as pd
+import numpy as np
+import nltk
+from nltk.corpus import stopwords
+from nltk.stem.snowball import PorterStemmer
+from nltk.tokenize import RegexpTokenizer
+from langdetect import detect
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.decomposition import TruncatedSVD
+from sklearn.cluster import KMeans
+from tqdm import tqdm
+from matplotlib import pyplot as plt
+import random
+import cProfile, pstats, io, string
+import math
+import pickle
+import re
 
 ########## QUESTION 1 ##########
+
 
 # Our hash function
 def hash_function(string_):
@@ -30,6 +49,7 @@ def hash_function(string_):
 def create_registers():
     return defaultdict(lambda :-1)
 
+
 # creating the buckets
 def update_register(string_, registers):
     b = 12
@@ -41,6 +61,7 @@ def update_register(string_, registers):
         rho_w = len(x[b:])
     registers[j] = max(registers[j],rho_w)
 
+    
 # creating the bucket useful to the hyperLogLog
 def process_data(registers):
     with open('hash.txt') as f:
@@ -50,6 +71,7 @@ def process_data(registers):
                 break
             update_register(line.strip(), registers)
 
+            
 # estimate the cardinality
 def hyperLogLog(registers):
     b = 12
@@ -60,12 +82,103 @@ def hyperLogLog(registers):
     E = (alpha)**(-1)*(m**2)*Z
     return E
 
+
 # the error of our filter
 def error_rate(registers_count):
     return 1.3 / math.sqrt(2**registers_count)
 
 ########## QUESTION 2 ##########
 
+
+def groupby_productid_df(df):
+    productid_df = pd.DataFrame()
+    product_id = []
+    reviews = []
+    new_df = pd.DataFrame()
+    for product, group in df.groupby('ProductId'):
+        product_id.append(product)
+        reviews.append(" ".join(list(group['Text'])))
+
+    productid_df['ProductId'] = product_id
+    productid_df['reviews'] = reviews
+    
+    return productid_df
+
+
+def clean_text(text):
+    x = re.compile('<.*?>')
+    text = re.sub(x, '', text)
+    
+    stop_words = set(stopwords.words('english')) # obtain the stop words
+    good_words = [] # save the correct words to consider like tokens
+    tokenizer = RegexpTokenizer("[\w']+") # function to recognize the tokens
+    words = tokenizer.tokenize(text) # tokenize the text 
+    for word in words:
+        # check if the word is lower and it isn't a stop word or a number
+        if word.lower() not in stop_words and word.isalpha(): 
+            word = PorterStemmer().stem(word) # use the stemmer function
+            good_words.append(word.lower()) # insert the good token to lower case
+        
+    return good_words
+
+
+class my_Kmeans():
+
+    def __init__(self, n_clusters):
+        self.n_clusters = n_clusters
+        self.prev_labels = [1]
+        self.labels = []
+        
+        
+    def initialize_algo(self, matrix):
+        random_indices = np.random.choice(len(matrix), size= self.n_clusters, replace=False)
+        self.centroids = matrix[random_indices, :]
+
+
+
+    def stop_iteration_flag(self):
+        if self.labels == self.prev_labels:
+            return True
+        else:
+            return False
+
+    
+    def compute_distance(self, vec1, vec2):
+        return np.linalg.norm(vec1 - vec2)
+
+    
+    def assign_clusters(self, matrix):
+        self.clusters = {}
+        self.prev_labels = self.labels.copy()
+        self.labels = []
+        
+        for row in matrix:
+            centroid_idx = np.argmin([self.compute_distance(row, centroid) for centroid in self.centroids])
+            self.clusters.setdefault(centroid_idx, []).append(row)
+            self.labels.append(centroid_idx)
+
+    
+    def update_centroids(self):
+        self.centroids = [np.mean(i, axis = 0) for i in self.clusters.values()]
+
+        
+    def fit(self, matrix):
+        self.initialize_algo(matrix)
+        iter_count = 0
+        while all((not self.stop_iteration_flag(), iter_count < 100)):
+            print("iteration no. {0}".format(iter_count))
+            self.assign_clusters(matrix)
+            self.update_centroids()
+            iter_count += 1
+        
+        return self.labels
+    
+    
+    def inertia(self, matrix):
+        sum_distance = 0
+        for i in range(len(matrix)):
+            sum_distance += (self.compute_distance(matrix[i], self.centroids[self.labels[i]]))**2
+        return sum_distance
 
 
 ########## QUESTION 3 ##########
