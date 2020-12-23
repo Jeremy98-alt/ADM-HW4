@@ -17,52 +17,52 @@ import operator
 
 ########## QUESTION 1 ##########
 
-# Our own hash function
-def HashingGabibbo(x):
+# Our hash function
+def hash_function(string_):
     n = 2^32 + 15
+    
+    result = 0
+    for char in string_:
+        result = result * 31 + ord(char)
+    result = format(result % n, '032b')
+    return result
 
-    ans = 0 
-    for char in x:
-        ans = ans * 31 + ord(char)
-    ans = format(ans % n, '032b')
-    return ans
-
-def createRegisters():
+def create_registers():
     return defaultdict(lambda :-1)
 
 # creating the buckets
-def Registers(v, M):
+def update_register(string_, registers):
     b = 12
-    x = HashingGabibbo(v)
+    x = hash_function(string_)
     j = int(str(x)[:b],2)
     if '1' in set(x[b:]):
         rho_w = (x[b:]).index('1')+1
     else:
         rho_w = len(x[b:])
-    M[j] = max(M[j],rho_w)
+    registers[j] = max(registers[j],rho_w)
 
 # creating the bucket useful to the hyperLogLog
-def Bucketization(M):
+def process_data(registers):
     with open('hash.txt') as f:
         while True:
             line = f.readline()
             if not line:
                 break
-            Registers(line.strip(), M)
+            update_register(line.strip(), registers)
 
-# calculate the estimate cardinality
-def HyperLogLog(M):
+# estimate the cardinality
+def hyperLogLog(registers):
     b = 12
     m = 2**b
     alpha = (m)*(integrate.quad(lambda u: (math.log((2+u)/(1+u),2))**(m),0,np.infty )[0])
 
-    Z=(sum(2**-M[j] for j in M.keys()))**(-1)
+    Z =(sum(2**-registers[j] for j in registers.keys()))**(-1)
     E = (alpha)**(-1)*(m**2)*Z
     return E
 
-# the main error of this filter
-def errorFilter():
-    return 1.3 / math.sqrt(2**10)
+# the error of our filter
+def error_rate(registers_count):
+    return 1.3 / math.sqrt(2**registers_count)
 
 ########## QUESTION 2 ##########
 
