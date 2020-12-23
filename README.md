@@ -3,9 +3,9 @@
 <br>
 
 _Authors:_
-* _Manuel Balzan_
 * _Paola Antonicoli_
 * _Jeremy Sapienza_
+* _Manuel Balzan_
 
 _for "Algorithmic Methods of Data Mining", "La Sapienza" University of Rome, MSc in Data Science, 2020-2021._
 
